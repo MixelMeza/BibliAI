@@ -16,7 +16,7 @@ import pe.com.bibliAI.BibliAI.service.ArticleService;
 
 @RestController
 @RequestMapping("/api/articles")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class ArticleController {
 
     @Autowired

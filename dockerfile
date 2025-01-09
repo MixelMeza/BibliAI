@@ -1,13 +1,15 @@
 # Etapa de construcción
-FROM openjdk:17-jdk-slim AS build
+FROM ubuntu:latest AS build
+RUN apt-get update
+RUN apt-get install -y openjdk-17-jdk maven
 WORKDIR /app
 COPY pom.xml .
-COPY src ./src
+RUN mvn dependency:resolve
+COPY . .
 RUN mvn -B clean package -DskipTests
 
-# Etapa final
+
 FROM openjdk:17-jdk-slim
-WORKDIR /app
 EXPOSE 8080
 COPY --from=build /app/target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

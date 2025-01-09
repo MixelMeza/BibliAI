@@ -3,11 +3,14 @@ package pe.com.bibliAI.BibliAI.service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pe.com.bibliAI.BibliAI.entity.Article;
+import pe.com.bibliAI.BibliAI.entity.ArticleDTO;
 import pe.com.bibliAI.BibliAI.repository.ArticleRepository;
 
 @Service
@@ -21,15 +24,18 @@ public class ArticleService {
 		return articleRepository.save(article);
 	}
 
-	public Article getArticleById(Long id) {
-		return articleRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Artículo no encontrado con ID: " + id));
-	}
+	  public ArticleDTO getArticleById(Long id) {
+	        Optional<Article> article = articleRepository.findById(id);
+	        return article.map(this::convertToDTO).orElseThrow(() -> new RuntimeException("Article not found"));
+	    }
 
-	public List<Article> getAllArticles() {
-		return articleRepository.findAll();
-	}
 
+	    public List<ArticleDTO> getAllArticles() {
+	        List<Article> articles = articleRepository.findAll();
+	        return articles.stream()
+	                .map(this::convertToDTO)
+	                .collect(Collectors.toList());
+	    }
 	public void deleteArticleById(Long id) {
 		if (articleRepository.existsById(id)) {
 			articleRepository.deleteById(id);
@@ -40,22 +46,49 @@ public class ArticleService {
 
 	public Article updateArticle(Long id, Article updatedArticle) {
 
-	    // Buscar el artículo en la base de datos
+
 	    Article article = articleRepository.findById(id)
 	            .orElseThrow(() -> new RuntimeException("Artículo no encontrado con ID: " + id));
 
-	    // Actualizar los campos del artículo, excepto createdAt
+
 	    article.setTitle(updatedArticle.getTitle());
 	    article.setContent(updatedArticle.getContent());
 	    article.setMediaUrl(updatedArticle.getMediaUrl());
 	    article.setCategory(updatedArticle.getCategory());
-	    article.setUser(updatedArticle.getUser());
+	    article.setAutores(updatedArticle.getAutores());
 	    
-	    // Actualizar el campo updatedAt
 	    article.setUpdatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
-	    // Guardar el artículo actualizado
 	    return articleRepository.save(article);
 	}
+	public ArticleDTO obtenerArticuloPorNombre(String nombre) {
+	    Article article = articleRepository.findByTitle(nombre);
+	    if (article != null) {
+	        return convertToDTO(article);	    }
+	    throw new RuntimeException("Article not found with title: " + nombre);
+	}
 
+
+	public List<ArticleDTO> obtenerArticulosPorNombreCategoria(String nombreCategoria) {
+	    List<Article> articles = articleRepository.findByCategoriaNombre(nombreCategoria);
+	    if (!articles.isEmpty()) {
+	        return articles.stream()
+	                       .map(this::convertToDTO) 
+	                       .collect(Collectors.toList());
+	    }
+	    throw new RuntimeException("No articles found for category: " + nombreCategoria);
+	}
+	 
+	 private ArticleDTO convertToDTO(Article article) {
+	        return ArticleDTO.builder()
+	                .id(article.getId())
+	                .category(article.getCategory())
+	                .title(article.getTitle())
+	                .content(article.getContent())
+	                .mediaUrl(article.getMediaUrl())
+	                .createdAt(article.getCreatedAt())
+	                .updatedAt(article.getUpdatedAt())
+	                .autores(article.getAutores())
+	                .build();
+	    }
 }

@@ -1,6 +1,8 @@
 package pe.com.bibliAI.BibliAI.controller;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import pe.com.bibliAI.BibliAI.entity.Article;
+import pe.com.bibliAI.BibliAI.entity.ArticleDTO;
 import pe.com.bibliAI.BibliAI.service.ArticleService;
 
 @RestController
@@ -31,9 +34,9 @@ public class ArticleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Article> getArticleById(@PathVariable Long id) {
+    public ResponseEntity<ArticleDTO> getArticleById(@PathVariable Long id) {
         try {
-            Article article = articleService.getArticleById(id);
+            ArticleDTO article = articleService.getArticleById(id);
             return new ResponseEntity<>(article, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -43,9 +46,9 @@ public class ArticleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Article>> getAllArticles() {
+    public ResponseEntity<List<ArticleDTO>> getAllArticles() {
         try {
-            List<Article> articles = articleService.getAllArticles();
+            List<ArticleDTO> articles = articleService.getAllArticles();
             return new ResponseEntity<>(articles, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -75,4 +78,38 @@ public class ArticleController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
+    @GetMapping("/buscar")
+    public ResponseEntity<?> buscarArticuloPorNombre(@RequestParam String nombre) {
+    	ArticleDTO articulo = articleService.obtenerArticuloPorNombre(nombre);
+        if (articulo != null) {
+            return ResponseEntity.ok(articulo);
+        } else {
+            return ResponseEntity.status(404).body("Artículo no encontrado");
+        }
+    }
+    @GetMapping("/por-categoria")
+    public ResponseEntity<List<ArticleDTO>> obtenerArticulosPorCategoria(
+            @RequestParam String categoria, 
+            @RequestParam String tituloActual) {
+        
+        List<ArticleDTO> articulos = articleService.obtenerArticulosPorNombreCategoria(categoria);
+       
+        if (articulos.isEmpty()) {
+            return ResponseEntity.noContent().build(); 
+        }
+
+        articulos = articulos.stream()
+                .filter(item -> !item.getTitle().equals(tituloActual))
+                .collect(Collectors.toList());
+
+        Collections.shuffle(articulos); 
+
+        List<ArticleDTO> recomendacionesAleatorias = articulos.stream()
+                .limit(6)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(recomendacionesAleatorias);
+    }
+
 }

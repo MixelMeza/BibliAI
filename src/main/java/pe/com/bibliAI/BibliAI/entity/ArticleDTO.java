@@ -22,4 +22,6 @@ public class ArticleDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String autores;
+    private String referencias;
+
 }

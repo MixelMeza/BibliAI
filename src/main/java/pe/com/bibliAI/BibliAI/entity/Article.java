@@ -41,6 +41,9 @@ public class Article {
     
     @Column(name = "autores")
     private String autores;
+    
+    @Column(columnDefinition = "TEXT")
+    private String referencias;
 }
 
 

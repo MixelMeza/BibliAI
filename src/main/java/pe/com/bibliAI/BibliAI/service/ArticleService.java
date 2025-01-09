@@ -56,6 +56,7 @@ public class ArticleService {
 	    article.setMediaUrl(updatedArticle.getMediaUrl());
 	    article.setCategory(updatedArticle.getCategory());
 	    article.setAutores(updatedArticle.getAutores());
+	    article.setReferencias(updatedArticle.getReferencias());
 	    
 	    article.setUpdatedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
@@ -89,6 +90,7 @@ public class ArticleService {
 	                .createdAt(article.getCreatedAt())
 	                .updatedAt(article.getUpdatedAt())
 	                .autores(article.getAutores())
+	                .referencias(article.getReferencias())
 	                .build();
 	    }
 }
